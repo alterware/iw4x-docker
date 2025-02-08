@@ -1,0 +1,50 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  docker:
+    name: Create Docker Image
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@main
+
+    - name: Run CI script to prepare IW4x files
+      working-directory: ${{ github.workspace }}
+      run: |
+        tools/ci/ci.sh
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3.9.0
+
+    - name: Log in to DockerHub
+      uses: docker/login-action@v3.3.0
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - id: meta
+      uses: docker/metadata-action@v5.6.1
+      with:
+        images: |
+          alterware/iw4x-docker
+        tags: |
+          ${{ github.ref_name }}
+          latest
+
+    - name: Build and push Docker image
+      id: build-and-push
+      uses: docker/build-push-action@v6.13.0
+      with:
+        context: .
+        platforms: linux/amd64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
