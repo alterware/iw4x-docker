@@ -54,3 +54,7 @@ This repository serves as a **working proof of concept** for running IW4x in Doc
    ```sh
    docker run -d --name custom-iw4x-server -p 28960:28960/udp custom-iw4x-docker
    ```
+
+To reduce the image size, remove the code in [ci.sh](tools/ci/ci.sh) that downloads the rawfiles or server configuration files.  
+By doing so, users must mount their own directory containing these necessary files, ensuring flexibility and allowing for a customized setup.
+This approach keeps the image lightweight while giving you full control over the server configuration. If you require additional modifications, consider cloning the repository and building your own custom image.  
